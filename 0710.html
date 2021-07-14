@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>读取代码文件，编辑并保存</title>
+  </head>
+
+  <body>
+    <div>
+      <p>读取文件</p>
+      <div><input type="file" id="fileInput" change="change" /></div>
+      <div><button id="save" type="button">保存代码</button></div>
+    </div>
+    <div id="container" style="height: 500px"></div>
+    <script src="./require.js"></script>
+    <script>
+      require.config({
+        paths: { vs: '../../node_modules/monaco-editor/min/vs' },
+      })
+
+      require(['vs/editor/editor.main'], function () {
+        let types = {
+          css: 'text/css',
+          html: 'text/html',
+          htm: 'text/html',
+          js: 'application/x-javascript',
+        }
+        let input = document.getElementById('fileInput')
+        let saveButton = document.getElementById('save')
+        let editor = null
+        input.addEventListener('change', function () {
+          const reader = new FileReader()
+          reader.onload = function fileReadCompleted() {
+            editor = monaco.editor.create(
+              document.getElementById('container'),
+              {
+                value: reader.result,
+                language: 'javascript',
+              }
+            )
+          }
+          reader.readAsText(this.files[0])
+        })
+
+        saveButton.addEventListener('click', function () {
+          const txt = editor.getValue()
+          download(txt, 'main.js', 'application/x-javascript')
+        })
+
+        function download(content, filename, type) {
+          let data = new Blob([content], { type: type + ';charset=UTF-8' })
+          let downloadUrl = window.URL.createObjectURL(data)
+          let anchor = document.createElement('a')
+          anchor.href = downloadUrl
+          anchor.download = filename
+          anchor.click()
+          window.URL.revokeObjectURL(data)
+        }
+      })
+    </script>
+  </body>
+</html>
